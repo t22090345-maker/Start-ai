@@ -17,13 +17,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.1.1
+
       - name: Create Native Android Project Structure
         run: |
           mkdir -p AI_Assistant/app/src/main/java/com/akash/coreagent
           mkdir -p AI_Assistant/app/src/main/res/values
           mkdir -p AI_Assistant/app/src/main/res/layout
           mkdir -p AI_Assistant/app/src/main/res/xml
-          mkdir -p AI_Assistant/gradle/wrapper
 
           # 1. settings.gradle
           cat << 'EOF' > AI_Assistant/settings.gradle
@@ -47,14 +51,8 @@ jobs:
 
           # 2. Project build.gradle
           cat << 'EOF' > AI_Assistant/build.gradle
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.0'
-              }
+          plugins {
+              id 'com.android.application' version '8.1.0' apply false
           }
           EOF
 
@@ -264,7 +262,7 @@ jobs:
           import android.widget.Button;
           import android.widget.EditText;
           import android.widget.Toast;
-          import androidx.appcompat.app.AppCompatActivity;
+           grandimport androidx.appcompat.app.AppCompatActivity;
 
           public class MainActivity extends AppCompatActivity {
               @Override
@@ -294,12 +292,10 @@ jobs:
           }
           EOF
 
-      - name: Setup Gradle Wrapper & Build APK
+      - name: Build APK
         run: |
           cd AI_Assistant
-          gradle wrapper --gradle-version 8.0
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          gradle assembleDebug
 
       - name: Upload Core Agent APK
         uses: actions/upload-artifact@v4
