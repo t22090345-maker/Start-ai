@@ -29,7 +29,15 @@ jobs:
           mkdir -p AI_Assistant/app/src/main/res/layout
           mkdir -p AI_Assistant/app/src/main/res/xml
 
-          # 1. settings.gradle
+          # 1. local.properties & gradle.properties
+          echo "sdk.dir=$ANDROID_HOME" > AI_Assistant/local.properties
+          
+          cat << 'EOF' > AI_Assistant/gradle.properties
+          android.useAndroidX=true
+          android.nonTransitiveRClass=false
+          EOF
+
+          # 2. settings.gradle
           cat << 'EOF' > AI_Assistant/settings.gradle
           pluginManagement {
               repositories {
@@ -49,14 +57,14 @@ jobs:
           include ':app'
           EOF
 
-          # 2. Project build.gradle
+          # 3. Project build.gradle
           cat << 'EOF' > AI_Assistant/build.gradle
           plugins {
               id 'com.android.application' version '8.1.0' apply false
           }
           EOF
 
-          # 3. App build.gradle
+          # 4. App build.gradle
           cat << 'EOF' > AI_Assistant/app/build.gradle
           plugins {
               id 'com.android.application'
@@ -85,15 +93,15 @@ jobs:
           }
           EOF
 
-          # 4. res/values/strings.xml
+          # 5. res/values/strings.xml
           cat << 'EOF' > AI_Assistant/app/src/main/res/values/strings.xml
           <resources>
               <string name="app_name">Core Agent</string>
-              <string name="service_description">Ye service phone control (tap, scroll, open apps) karne ke liye hai.</string>
+              <string name="service_description">Ye service phone control karne ke liye hai.</string>
           </resources>
           EOF
 
-          # 5. res/xml/accessibility_service_config.xml
+          # 6. res/xml/accessibility_service_config.xml
           cat << 'EOF' > AI_Assistant/app/src/main/res/xml/accessibility_service_config.xml
           <?xml version="1.0" encoding="utf-8"?>
           <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
@@ -106,7 +114,7 @@ jobs:
               android:canPerformGestures="true" />
           EOF
 
-          # 6. res/layout/activity_main.xml
+          # 7. res/layout/activity_main.xml
           cat << 'EOF' > AI_Assistant/app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -146,7 +154,7 @@ jobs:
           </LinearLayout>
           EOF
 
-          # 7. AndroidManifest.xml
+          # 8. AndroidManifest.xml
           cat << 'EOF' > AI_Assistant/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -182,7 +190,7 @@ jobs:
           </manifest>
           EOF
 
-          # 8. CoreService.java
+          # 9. CoreService.java
           cat << 'EOF' > AI_Assistant/app/src/main/java/com/akash/coreagent/CoreService.java
           package com.akash.coreagent;
 
@@ -219,7 +227,12 @@ jobs:
                       openApp("com.google.android.youtube");
                       
                       if(command.contains("scroll")) {
-                          new Handler(Looper.getMainLooper()).postDelayed(this::performScroll, 3000);
+                          new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                              @Override
+                              public void run() {
+                                  performScroll();
+                              }
+                          }, 3000);
                       }
                   } else if (command.contains("scroll")) {
                       performScroll();
@@ -252,7 +265,7 @@ jobs:
           }
           EOF
 
-          # 9. MainActivity.java
+          # 10. MainActivity.java
           cat << 'EOF' > AI_Assistant/app/src/main/java/com/akash/coreagent/MainActivity.java
           package com.akash.coreagent;
 
@@ -295,7 +308,7 @@ jobs:
       - name: Build APK
         run: |
           cd AI_Assistant
-          gradle assembleDebug
+          gradle assembleDebug --stacktrace
 
       - name: Upload Core Agent APK
         uses: actions/upload-artifact@v4
