@@ -1,4 +1,4 @@
-name: Build Simple Accessibility Agent APK
+name: Build Background Wake-Word Agent APK
 
 on:
   workflow_dispatch:
@@ -29,7 +29,6 @@ jobs:
           mkdir -p AI_Assistant/app/src/main/res/layout
           mkdir -p AI_Assistant/app/src/main/res/xml
 
-          # 1. local.properties & gradle.properties
           echo "sdk.dir=$ANDROID_HOME" > AI_Assistant/local.properties
           
           cat << 'EOF' > AI_Assistant/gradle.properties
@@ -37,7 +36,6 @@ jobs:
           android.nonTransitiveRClass=false
           EOF
 
-          # 2. settings.gradle
           cat << 'EOF' > AI_Assistant/settings.gradle
           pluginManagement {
               repositories {
@@ -57,14 +55,12 @@ jobs:
           include ':app'
           EOF
 
-          # 3. Project build.gradle
           cat << 'EOF' > AI_Assistant/build.gradle
           plugins {
               id 'com.android.application' version '8.1.0' apply false
           }
           EOF
 
-          # 4. App build.gradle
           cat << 'EOF' > AI_Assistant/app/build.gradle
           plugins {
               id 'com.android.application'
@@ -76,7 +72,7 @@ jobs:
 
               defaultConfig {
                   applicationId "com.akash.coreagent"
-                  minSdk 24
+                  minSdk 26
                   targetSdk 34
                   versionCode 1
                   versionName "1.0"
@@ -93,15 +89,13 @@ jobs:
           }
           EOF
 
-          # 5. res/values/strings.xml
           cat << 'EOF' > AI_Assistant/app/src/main/res/values/strings.xml
           <resources>
               <string name="app_name">Core Agent</string>
-              <string name="service_description">Voice-Controlled AI Voice Agent Service.</string>
+              <string name="service_description">Voice-Controlled AI Agent with Background Listening.</string>
           </resources>
           EOF
 
-          # 6. res/xml/accessibility_service_config.xml
           cat << 'EOF' > AI_Assistant/app/src/main/res/xml/accessibility_service_config.xml
           <?xml version="1.0" encoding="utf-8"?>
           <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
@@ -114,7 +108,6 @@ jobs:
               android:canPerformGestures="true" />
           EOF
 
-          # 7. res/layout/activity_main.xml
           cat << 'EOF' > AI_Assistant/app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -127,74 +120,50 @@ jobs:
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
-                  android:text="🎙️ Voice Core Agent"
+                  android:text="🎙️ Junior Background Agent"
                   android:textSize="24sp"
                   android:textStyle="bold"
                   android:layout_marginBottom="16dp"/>
 
-              <TextView
-                  android:id="@+id/tvStatus"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:text="Status: Ready to listen..."
-                  android:textSize="14sp"
-                  android:textColor="#555555"
-                  android:layout_marginBottom="24dp"/>
-                  
               <Button
-                  android:id="@+id/btnMic"
+                  android:id="@+id/btnEnableAcc"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="1. Enable Accessibility" 
+                  android:layout_marginBottom="12dp"/>
+
+              <Button
+                  android:id="@+id/btnStartBgService"
                   android:layout_width="match_parent"
                   android:layout_height="60dp"
-                  android:text="🎤 SPEAK COMMAND"
-                  android:textSize="18sp"
+                  android:text="2. START BACKGROUND LISTENING"
+                  android:textSize="14sp"
                   android:textStyle="bold"
-                  android:backgroundTint="#6200EE"
+                  android:backgroundTint="#008000"
                   android:textColor="#FFFFFF"
-                  android:layout_marginBottom="16dp"/>
-
-              <Button
-                  android:id="@+id/btnEnableService"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:text="⚙️ Enable Agent Permission" 
                   android:layout_marginBottom="24dp"/>
-                  
-              <View
-                  android:layout_width="match_parent"
-                  android:layout_height="1dp"
-                  android:background="#CCCCCC"
-                  android:layout_marginBottom="16dp"/>
 
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
-                  android:text="Or Type Command Manually:"
-                  android:textSize="12sp"
-                  android:layout_marginBottom="8dp"/>
-
-              <EditText
-                  android:id="@+id/etCommand"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:hint="e.g. open whatsapp, scroll, home"/>
-                  
-              <Button
-                  android:id="@+id/btnExecute"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:text="Execute Written Command"
-                  android:layout_marginTop="8dp"/>
+                  android:text="Just say 'Junior' anytime to wake up the assistant!"
+                  android:textSize="14sp"
+                  android:textAlignment="center"
+                  android:textColor="#555555"/>
           </LinearLayout>
           EOF
 
-          # 8. AndroidManifest.xml
           cat << 'EOF' > AI_Assistant/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools">
 
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
               <application
                   android:allowBackup="true"
@@ -205,9 +174,7 @@ jobs:
                   
                   <activity 
                       android:name="com.akash.coreagent.MainActivity" 
-                      android:exported="true"
-                      android:enabled="true"
-                      android:label="@string/app_name">
+                      android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -225,11 +192,15 @@ jobs:
                           android:name="android.accessibilityservice"
                           android:resource="@xml/accessibility_service_config" />
                   </service>
+
+                  <service
+                      android:name="com.akash.coreagent.VoiceBackgroundService"
+                      android:exported="false"
+                      android:foregroundServiceType="microphone" />
               </application>
           </manifest>
           EOF
 
-          # 9. CoreService.java
           cat << 'EOF' > AI_Assistant/app/src/main/java/com/akash/coreagent/CoreService.java
           package com.akash.coreagent;
 
@@ -239,21 +210,17 @@ jobs:
           import android.content.pm.PackageManager;
           import android.content.pm.ResolveInfo;
           import android.graphics.Path;
-          import android.os.Handler;
-          import android.os.Looper;
           import android.view.accessibility.AccessibilityEvent;
           import android.widget.Toast;
           import java.util.List;
 
           public class CoreService extends AccessibilityService {
-              
               public static CoreService instance;
 
               @Override
               protected void onServiceConnected() {
                   super.onServiceConnected();
                   instance = this;
-                  Toast.makeText(this, "Voice Agent Active!", Toast.LENGTH_SHORT).show();
               }
 
               @Override
@@ -266,58 +233,21 @@ jobs:
                   if (command == null || command.trim().isEmpty()) return;
                   String cmd = command.toLowerCase().trim();
 
-                  Toast.makeText(this, "Recognized: " + cmd, Toast.LENGTH_SHORT).show();
-
-                  // 1. Navigation / System Actions (English & Hindi)
                   if (cmd.contains("home")) {
                       performGlobalAction(GLOBAL_ACTION_HOME);
-                      return;
                   } else if (cmd.contains("back") || cmd.contains("peeche")) {
                       performGlobalAction(GLOBAL_ACTION_BACK);
-                      return;
-                  } else if (cmd.contains("recent")) {
-                      performGlobalAction(GLOBAL_ACTION_RECENTS);
-                      return;
-                  } else if (cmd.contains("scroll down") || cmd.contains("scroll") || cmd.contains("niche")) {
+                  } else if (cmd.contains("scroll down") || cmd.contains("scroll") || cmd.contains("niche") || cmd.contains("next")) {
                       performScrollDown();
-                      return;
-                  } else if (cmd.contains("scroll up") || cmd.contains("upar")) {
+                  } else if (cmd.contains("scroll up") || cmd.contains("upar") || cmd.contains("previous")) {
                       performScrollUp();
-                      return;
-                  }
-
-                  // 2. Direct App Launchers
-                  if (cmd.contains("whatsapp")) {
+                  } else if (cmd.contains("whatsapp")) {
                       openAppByPackage("com.whatsapp");
-                  } else if (cmd.contains("instagram") || cmd.contains("insta")) {
-                      openAppByPackage("com.instagram.android");
                   } else if (cmd.contains("youtube")) {
-                      openAppByPackage("com.google.android.youtube");
-                  } else if (cmd.contains("chrome") || cmd.contains("browser")) {
-                      openAppByPackage("com.android.chrome");
-                  } else if (cmd.contains("facebook") || cmd.contains("fb")) {
-                      openAppByPackage("com.facebook.katana");
-                  } else if (cmd.contains("play store") || cmd.contains("playstore")) {
-                      openAppByPackage("com.android.vending");
-                  } else if (cmd.contains("settings")) {
-                      openAppByPackage("com.android.settings");
+                      openAppByName("youtube");
                   } else {
-                      // Generic app search
-                      String appName = cmd.replace("open", "")
-                                          .replace("kholo", "")
-                                          .replace("chalao", "")
-                                          .replace("karro", "").trim();
+                      String appName = cmd.replace("open", "").replace("kholo", "").trim();
                       openAppByName(appName);
-                  }
-
-                  // Auto scroll if command includes scroll along with opening app
-                  if (cmd.contains("scroll")) {
-                      new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                          @Override
-                          public void run() {
-                              performScrollDown();
-                          }
-                      }, 3000);
                   }
               }
 
@@ -327,15 +257,12 @@ jobs:
                       if (intent != null) {
                           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                           startActivity(intent);
-                      } else {
-                          Toast.makeText(this, "App not installed: " + packageName, Toast.LENGTH_SHORT).show();
                       }
-                  } catch (Exception e) {
-                      Toast.makeText(this, "Failed to open app", Toast.LENGTH_SHORT).show();
-                  }
+                  } catch (Exception e) {}
               }
 
               private void openAppByName(String appName) {
+                  if(appName.isEmpty()) return;
                   PackageManager pm = getPackageManager();
                   Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
                   mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -352,185 +279,247 @@ jobs:
                           }
                       }
                   }
-                  Toast.makeText(this, "App not found: " + appName, Toast.LENGTH_SHORT).show();
               }
 
               private void performScrollDown() {
+                  int width = android.content.res.Resources.getSystem().getDisplayMetrics().widthPixels;
+                  int height = android.content.res.Resources.getSystem().getDisplayMetrics().heightPixels;
                   Path swipePath = new Path();
-                  swipePath.moveTo(500, 1500);
-                  swipePath.lineTo(500, 300);
-                  
+                  swipePath.moveTo(width / 2, (int)(height * 0.8));
+                  swipePath.lineTo(width / 2, (int)(height * 0.2));
                   GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-                  gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 500));
+                  gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 150));
                   dispatchGesture(gestureBuilder.build(), null, null);
               }
 
               private void performScrollUp() {
+                  int width = android.content.res.Resources.getSystem().getDisplayMetrics().widthPixels;
+                  int height = android.content.res.Resources.getSystem().getDisplayMetrics().heightPixels;
                   Path swipePath = new Path();
-                  swipePath.moveTo(500, 300);
-                  swipePath.lineTo(500, 1500);
-                  
+                  swipePath.moveTo(width / 2, (int)(height * 0.2));
+                  swipePath.lineTo(width / 2, (int)(height * 0.8));
                   GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-                  gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 500));
+                  gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 150));
                   dispatchGesture(gestureBuilder.build(), null, null);
               }
           }
           EOF
 
-          # 10. MainActivity.java
+          cat << 'EOF' > AI_Assistant/app/src/main/java/com/akash/coreagent/VoiceBackgroundService.java
+          package com.akash.coreagent;
+
+          import android.app.Notification;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.Service;
+          import android.content.Intent;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Handler;
+          import android.os.IBinder;
+          import android.os.Looper;
+          import android.speech.RecognitionListener;
+          import android.speech.RecognizerIntent;
+          import android.speech.SpeechRecognizer;
+          import android.speech.tts.TextToSpeech;
+          import android.util.Log;
+          import androidx.core.app.NotificationCompat;
+          import java.util.ArrayList;
+          import java.util.Locale;
+
+          public class VoiceBackgroundService extends Service {
+              private SpeechRecognizer speechRecognizer;
+              private Intent recognizerIntent;
+              private TextToSpeech tts;
+              private boolean isWaitingForCommand = false;
+              private Handler handler = new Handler(Looper.getMainLooper());
+
+              @Override
+              public void onCreate() {
+                  super.onCreate();
+                  createNotificationChannel();
+                  Notification notification = new NotificationCompat.Builder(this, "JuniorAgentChannel")
+                          .setContentTitle("Junior Agent Active")
+                          .setContentText("Listening for 'Junior' in background...")
+                          .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+                          .build();
+                  startForeground(1, notification);
+
+                  tts = new TextToSpeech(this, status -> {
+                      if (status == TextToSpeech.SUCCESS) {
+                          tts.setLanguage(new Locale("en", "IN"));
+                      }
+                  });
+
+                  setupSpeechRecognizer();
+              }
+
+              @Override
+              public int onStartCommand(Intent intent, int flags, int startId) {
+                  startListening();
+                  return START_STICKY;
+              }
+
+              private void setupSpeechRecognizer() {
+                  speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+                  recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                  recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                  recognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+
+                  speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                      @Override
+                      public void onReadyForSpeech(Bundle params) {}
+                      @Override
+                      public void onBeginningOfSpeech() {}
+                      @Override
+                      public void onRmsChanged(float rmsdB) {}
+                      @Override
+                      public void onBufferReceived(byte[] buffer) {}
+                      @Override
+                      public void onEndOfSpeech() {}
+
+                      @Override
+                      public void onError(int error) {
+                          restartListeningDelayed();
+                      }
+
+                      @Override
+                      public void onResults(Bundle results) {
+                          processResults(results);
+                      }
+
+                      @Override
+                      public void onPartialResults(Bundle partialResults) {
+                          // Allow early detection for faster response
+                          processResults(partialResults);
+                      }
+
+                      @Override
+                      public void onEvent(int eventType, Bundle params) {}
+                  });
+              }
+
+              private void processResults(Bundle results) {
+                  ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                  if (matches != null && !matches.isEmpty()) {
+                      String text = matches.get(0).toLowerCase();
+
+                      if (!isWaitingForCommand) {
+                          if (text.contains("junior")) {
+                              isWaitingForCommand = true;
+                              speechRecognizer.cancel();
+                              tts.speak("Yes", TextToSpeech.QUEUE_FLUSH, null, null);
+                              
+                              // Wait for TTS to say "Yes", then start listening for actual command
+                              handler.postDelayed(() -> startListening(), 1000);
+                              return;
+                          }
+                      } else {
+                          // Execute actual command
+                          if (CoreService.instance != null) {
+                              CoreService.instance.processCommand(text);
+                          }
+                          isWaitingForCommand = false;
+                      }
+                  }
+                  restartListeningDelayed();
+              }
+
+              private void startListening() {
+                  if (speechRecognizer != null) {
+                      try {
+                          speechRecognizer.startListening(recognizerIntent);
+                      } catch (Exception e) {}
+                  }
+              }
+
+              private void restartListeningDelayed() {
+                  handler.postDelayed(this::startListening, 300);
+              }
+
+              private void createNotificationChannel() {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      NotificationChannel serviceChannel = new NotificationChannel(
+                              "JuniorAgentChannel",
+                              "Background Voice Service",
+                              NotificationManager.IMPORTANCE_LOW
+                      );
+                      NotificationManager manager = getSystemService(NotificationManager.class);
+                      manager.createNotificationChannel(serviceChannel);
+                  }
+              }
+
+              @Override
+              public IBinder onBind(Intent intent) { return null; }
+
+              @Override
+              public void onDestroy() {
+                  super.onDestroy();
+                  if (speechRecognizer != null) speechRecognizer.destroy();
+                  if (tts != null) tts.shutdown();
+              }
+          }
+          EOF
+
           cat << 'EOF' > AI_Assistant/app/src/main/java/com/akash/coreagent/MainActivity.java
           package com.akash.coreagent;
 
           import android.Manifest;
           import android.content.Intent;
           import android.content.pm.PackageManager;
+          import android.os.Build;
           import android.os.Bundle;
           import android.provider.Settings;
-          import android.speech.RecognitionListener;
-          import android.speech.RecognizerIntent;
-          import android.speech.SpeechRecognizer;
           import android.widget.Button;
-          import android.widget.EditText;
-          import android.widget.TextView;
           import android.widget.Toast;
-          import androidx.annotation.NonNull;
           import androidx.appcompat.app.AppCompatActivity;
           import androidx.core.app.ActivityCompat;
           import androidx.core.content.ContextCompat;
-          import java.util.ArrayList;
 
           public class MainActivity extends AppCompatActivity {
-
-              private static final int PERMISSION_REQUEST_RECORD_AUDIO = 101;
-              private SpeechRecognizer speechRecognizer;
-              private TextView tvStatus;
-
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   setContentView(R.layout.activity_main);
 
-                  Button btnEnable = findViewById(R.id.btnEnableService);
-                  Button btnExecute = findViewById(R.id.btnExecute);
-                  Button btnMic = findViewById(R.id.btnMic);
-                  EditText etCommand = findViewById(R.id.etCommand);
-                  tvStatus = findViewById(R.id.tvStatus);
+                  requestAllPermissions();
 
-                  // Check Mic Permission
-                  checkAudioPermission();
+                  Button btnEnableAcc = findViewById(R.id.btnEnableAcc);
+                  Button btnStartBg = findViewById(R.id.btnStartBgService);
 
-                  // Initialize Speech Recognizer
-                  setupSpeechRecognizer();
+                  btnEnableAcc.setOnClickListener(v -> {
+                      startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                  });
 
-                  btnMic.setOnClickListener(v -> {
+                  btnStartBg.setOnClickListener(v -> {
                       if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                          startListening();
+                          Intent serviceIntent = new Intent(this, VoiceBackgroundService.class);
+                          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                              startForegroundService(serviceIntent);
+                          } else {
+                              startService(serviceIntent);
+                          }
+                          Toast.makeText(this, "Background Service Started! Say 'Junior'", Toast.LENGTH_LONG).show();
+                          finish(); // Minimize app
                       } else {
-                          checkAudioPermission();
+                          Toast.makeText(this, "Need Mic Permission!", Toast.LENGTH_SHORT).show();
                       }
                   });
-
-                  btnEnable.setOnClickListener(v -> {
-                      Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                      startActivity(intent);
-                      Toast.makeText(this, "Enable 'Core Agent' in accessibility settings", Toast.LENGTH_LONG).show();
-                  });
-
-                  btnExecute.setOnClickListener(v -> {
-                      String cmd = etCommand.getText().toString();
-                      executeCommand(cmd);
-                  });
               }
 
-              private void setupSpeechRecognizer() {
-                  if (SpeechRecognizer.isRecognitionAvailable(this)) {
-                      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-                      speechRecognizer.setRecognitionListener(new RecognitionListener() {
-                          @Override
-                          public void onReadyForSpeech(Bundle params) {
-                              tvStatus.setText("Status: 🎙️ Listening... Speak now!");
-                          }
-
-                          @Override
-                          public void onBeginningOfSpeech() {}
-
-                          @Override
-                          public void onRmsChanged(float rmsdB) {}
-
-                          @Override
-                          public void onBufferReceived(byte[] buffer) {}
-
-                          @Override
-                          public void onEndOfSpeech() {
-                              tvStatus.setText("Status: Processing voice...");
-                          }
-
-                          @Override
-                          public void onError(int error) {
-                              tvStatus.setText("Status: Error listening. Try again.");
-                          }
-
-                          @Override
-                          public void onResults(Bundle results) {
-                              ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                              if (matches != null && !matches.isEmpty()) {
-                                  String spokenText = matches.get(0);
-                                  tvStatus.setText("Heard: \"" + spokenText + "\"");
-                                  executeCommand(spokenText);
-                              }
-                          }
-
-                          @Override
-                          public void onPartialResults(Bundle partialResults) {}
-
-                          @Override
-                          public void onEvent(int eventType, Bundle params) {}
-                      });
+              private void requestAllPermissions() {
+                  String[] permissions = null;
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      permissions = new String[]{
+                          Manifest.permission.RECORD_AUDIO, 
+                          Manifest.permission.POST_NOTIFICATIONS
+                      };
                   } else {
-                      tvStatus.setText("Status: Speech recognition not available on this device.");
+                      permissions = new String[]{Manifest.permission.RECORD_AUDIO};
                   }
-              }
-
-              private void startListening() {
-                  if (speechRecognizer != null) {
-                      Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                      intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak a command...");
-                      speechRecognizer.startListening(intent);
-                  }
-              }
-
-              private void executeCommand(String cmd) {
-                  if (CoreService.instance != null) {
-                      CoreService.instance.processCommand(cmd);
-                  } else {
-                      Toast.makeText(this, "Please Enable Agent Permission First!", Toast.LENGTH_SHORT).show();
-                  }
-              }
-
-              private void checkAudioPermission() {
+                  
                   if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                      ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_RECORD_AUDIO);
-                  }
-              }
-
-              @Override
-              public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-                  super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                  if (requestCode == PERMISSION_REQUEST_RECORD_AUDIO) {
-                      if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                          Toast.makeText(this, "Microphone Permission Granted", Toast.LENGTH_SHORT).show();
-                      } else {
-                          Toast.makeText(this, "Microphone Permission Denied!", Toast.LENGTH_SHORT).show();
-                      }
-                  }
-              }
-
-              @Override
-              protected void onDestroy() {
-                  super.onDestroy();
-                  if (speechRecognizer != null) {
-                      speechRecognizer.destroy();
+                      ActivityCompat.requestPermissions(this, permissions, 100);
                   }
               }
           }
